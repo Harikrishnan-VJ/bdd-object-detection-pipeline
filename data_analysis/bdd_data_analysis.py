@@ -50,14 +50,16 @@ def filter_detection_labels(images):
     for img in images:
         # Filter labels. Keep only classes with bboxes
         det_labels = [label for label in img.get('labels', [])
-                      if label.get('category') in DETECTION_CLASSES
-                      and 'box2d' in label]
+                      if 'box2d' in label]
+        
         if det_labels:  # Keep even if no labels for anomaly check
             img_copy = img.copy()
             img_copy['labels'] = det_labels
             filtered.append(img_copy)
-        elif not img.get('labels'):
+        else:
+            print("empty image found")
             empty_images.append(img['name'])
+
     return filtered, empty_images
 
 def compute_basic_stats(images, split_name, empty_images):
@@ -191,6 +193,15 @@ def generate_plots(stats, output_dir):
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f'empty_images_{split}.png'))
     plt.close()
+    
+    # Pie chart: scene
+    plt.figure(figsize=(8, 8))
+    plt.pie(stats['scene_dist'].values(), labels=stats['scene_dist'].keys(), autopct='%1.1f%%')
+    plt.title(f'Scene Distribution - {split}')
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'scene_dist_{split}.png'))
+    plt.close()
+
 
     
 
