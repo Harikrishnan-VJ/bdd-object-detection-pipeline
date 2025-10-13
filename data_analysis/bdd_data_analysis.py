@@ -220,6 +220,17 @@ def generate_plots(stats, output_dir):
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f'occluded_counts_{split}.png'))
     plt.close()
+    
+    # Bar chart: truncated counts per class
+    df_truncated = pd.DataFrame([(k.split('_')[0], k.split('_')[1], v) for k, v in stats['truncated_per_class'].items()],
+                                columns=['Class', 'Truncated', 'Count'])
+    plt.figure(figsize=(12, 6))
+    sns.barplot(x='Class', y='Count', hue='Truncated', data=df_truncated)
+    plt.title(f'Truncated Counts per Class - {split}')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'truncated_counts_{split}.png'))
+    plt.close()
 
 
 
