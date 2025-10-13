@@ -133,6 +133,7 @@ def compute_basic_stats(images, split_name, empty_images):
     stats = {
         'split': split_name,
         'num_images': num_images,
+        'empty_images': empty_images,
         'total_bboxes': total_bboxes,
         'unique_classes': unique_classes,
         'num_unique_classes': len(unique_classes),
@@ -179,8 +180,19 @@ def generate_plots(stats, output_dir):
     plt.title(f'Weather Distribution - {split}')
     plt.savefig(os.path.join(output_dir, f'weather_dist_{split}.png'))
     plt.close()
+    
+    # Pie chart: empty images proportion
+    total_images = stats['num_images'] + len(stats['empty_images'])
+    empty_count = len(stats['empty_images'])
+    non_empty_count = stats['num_images']
+    plt.figure(figsize=(8, 8))
+    plt.pie([empty_count, non_empty_count], labels=['Empty Images', 'Non-Empty Images'], autopct='%1.1f%%')
+    plt.title(f'Empty vs Non-Empty Images - {split}')
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'empty_images_{split}.png'))
+    plt.close()
 
-    # Similar for scene, timeofday, etc. (add more as needed)
+    
 
 def write_report(train_stats, val_stats, output_file):
     """
@@ -196,6 +208,7 @@ def write_report(train_stats, val_stats, output_file):
 
         f.write("## Basic Overview\n")
         f.write(f"- Total images: Train={train_stats['num_images']}, Val={val_stats['num_images']}\n")
+        f.write(f"- Images with no labels: Train={len(train_stats['empty_images'])}, Val={len(val_stats['empty_images'])}\n")
         f.write(f"- Total bboxes: Train={train_stats['total_bboxes']}, Val={val_stats['total_bboxes']}\n")
         f.write(f"- Unique classes: {', '.join(set(train_stats['unique_classes'] + val_stats['unique_classes']))}\n")
         f.write(f"- Num unique classes: {len(set(train_stats['unique_classes'] + val_stats['unique_classes']))}\n\n")
