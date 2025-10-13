@@ -201,6 +201,14 @@ def generate_plots(stats, output_dir):
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f'scene_dist_{split}.png'))
     plt.close()
+    
+    # Pie chart: time of day
+    plt.figure(figsize=(8, 8))
+    plt.pie(stats['timeofday_dist'].values(), labels=stats['timeofday_dist'].keys(), autopct='%1.1f%%')
+    plt.title(f'Time of Day Distribution - {split}')
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, f'timeofday_dist_{split}.png'))
+    plt.close()
 
 
     
