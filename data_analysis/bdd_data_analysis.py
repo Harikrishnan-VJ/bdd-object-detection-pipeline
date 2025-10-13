@@ -165,6 +165,7 @@ def generate_plots(stats, output_dir):
         output_dir (str): Directory to save plots.
     """
     os.makedirs(output_dir, exist_ok=True)
+    
     split = stats['split']
 
     # Bar chart: class counts
@@ -173,14 +174,16 @@ def generate_plots(stats, output_dir):
     sns.barplot(x='Class', y='Count', data=df_classes)
     plt.title(f'Class Distribution - {split}')
     plt.xticks(rotation=45)
-    plt.savefig(os.path.join(output_dir, f'class_dist_{split}.png'))
+    os.makedirs(os.path.join(output_dir, 'class_distribution'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'class_distribution', f'class_dist_{split}.png'))
     plt.close()
 
     # Pie chart: weather
     plt.figure(figsize=(8, 8))
     plt.pie(stats['weather_dist'].values(), labels=stats['weather_dist'].keys(), autopct='%1.1f%%')
     plt.title(f'Weather Distribution - {split}')
-    plt.savefig(os.path.join(output_dir, f'weather_dist_{split}.png'))
+    os.makedirs(os.path.join(output_dir, 'weather_distribution'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'weather_distribution', f'weather_dist_{split}.png'))
     plt.close()
     
     # Pie chart: empty images proportion
@@ -191,7 +194,8 @@ def generate_plots(stats, output_dir):
     plt.pie([empty_count, non_empty_count], labels=['Empty Images', 'Non-Empty Images'], autopct='%1.1f%%')
     plt.title(f'Empty vs Non-Empty Images - {split}')
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'empty_images_{split}.png'))
+    os.makedirs(os.path.join(output_dir, 'empty_images'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'empty_images', f'empty_images_{split}.png'))
     plt.close()
     
     # Pie chart: scene
@@ -199,7 +203,8 @@ def generate_plots(stats, output_dir):
     plt.pie(stats['scene_dist'].values(), labels=stats['scene_dist'].keys(), autopct='%1.1f%%')
     plt.title(f'Scene Distribution - {split}')
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'scene_dist_{split}.png'))
+    os.makedirs(os.path.join(output_dir, 'scene_distibution'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'scene_distibution', f'scene_dist_{split}.png'))
     plt.close()
     
     # Pie chart: time of day
@@ -207,7 +212,8 @@ def generate_plots(stats, output_dir):
     plt.pie(stats['timeofday_dist'].values(), labels=stats['timeofday_dist'].keys(), autopct='%1.1f%%')
     plt.title(f'Time of Day Distribution - {split}')
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'timeofday_dist_{split}.png'))
+    os.makedirs(os.path.join(output_dir, 'time_of_day_distribution'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'time_of_day_distribution', f'timeofday_dist_{split}.png'))
     plt.close()
     
     # Bar chart: occluded counts per class
@@ -218,7 +224,8 @@ def generate_plots(stats, output_dir):
     plt.title(f'Occluded Counts per Class - {split}')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'occluded_counts_{split}.png'))
+    os.makedirs(os.path.join(output_dir, 'occluded_objects_per_class'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'occluded_objects_per_class', f'occluded_counts_{split}.png'))
     plt.close()
     
     # Bar chart: truncated counts per class
@@ -229,7 +236,8 @@ def generate_plots(stats, output_dir):
     plt.title(f'Truncated Counts per Class - {split}')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'truncated_counts_{split}.png'))
+    os.makedirs(os.path.join(output_dir, 'truncated_objects_per_class'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'truncated_objects_per_class', f'truncated_counts_{split}.png'))
     plt.close()
 
 
@@ -261,7 +269,7 @@ def write_report(train_stats, val_stats, output_file):
             f.write(f"- {cls}: {cnt}\n")
         f.write("Val:\n")
         for cls, cnt in val_stats['class_counts'].items():
-            f.write(f"- {cls}: {cnt}\n\n")
+            f.write(f"- {cls}: {cnt}\n")
 
         f.write("## Bounding Box Stats\n")
         f.write(f"- Avg bboxes per image: Train={train_stats['avg_bboxes_per_image']:.2f}, Val={val_stats['avg_bboxes_per_image']:.2f}\n")
