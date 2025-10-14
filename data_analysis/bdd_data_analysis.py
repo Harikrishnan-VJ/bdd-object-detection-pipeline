@@ -308,13 +308,13 @@ def write_report(train_stats, val_stats, output_file):
 
         f.write("\n## Visualizations\n")
         f.write("See plots in output/plots/ for charts (e.g., class_dist_train.png).\n")
-        # Add more details on patterns/anomalies as needed
+        
 
 def main():
     """Main function to run analysis."""
-    train_path = '/home/user/hari/test/bdd100k_labels_release/bdd100k/labels/bdd100k_labels_images_train.json'
-    val_path = '/home/user/hari/test/bdd100k_labels_release/bdd100k/labels/bdd100k_labels_images_val.json'
-    output_dir = 'output'
+    train_path = '/app/data/bdd100k_labels_images_train.json'
+    val_path = '/app/data/bdd100k_labels_images_val.json'
+    output_dir = '/app/output'
     plots_dir = os.path.join(output_dir, 'plots')
     report_file = os.path.join(output_dir, 'analysis_report.md')
 
