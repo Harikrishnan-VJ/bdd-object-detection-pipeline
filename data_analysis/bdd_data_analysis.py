@@ -6,8 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-train_data_labels_path = '/home/user/hari/test/bdd100k_labels_release/bdd100k/labels/bdd100k_labels_images_train.json'
-val_data_labels_path = '/home/user/hari/test/bdd100k_labels_release/bdd100k/labels/bdd100k_labels_images_val.json'
 
 
 def load_json_data(file_path):
@@ -36,7 +34,7 @@ DETECTION_CLASSES = {
 
 def filter_detection_labels(images):
     """
-    Filter labels to only include detection classes with bounding boxes.
+    Filter labels with only bounding boxes.
 
     Args:
         images (list): List of image dicts.
@@ -52,19 +50,20 @@ def filter_detection_labels(images):
         det_labels = [label for label in img.get('labels', [])
                       if 'box2d' in label]
         
-        if det_labels:  # Keep even if no labels for anomaly check
+        if det_labels:  
             img_copy = img.copy()
             img_copy['labels'] = det_labels
             filtered.append(img_copy)
         else:
-            print("empty image found")
+            print("Empty image found")
             empty_images.append(img['name'])
 
     return filtered, empty_images
 
+
 def compute_basic_stats(images, split_name, empty_images):
     """
-    Compute basic stats: images, bboxes, classes.
+    Compute basic stats: images, bboxes, classes, and anomalies.
 
     Args:
         images (list): Filtered image list.
@@ -82,6 +81,10 @@ def compute_basic_stats(images, split_name, empty_images):
     traffic_light_colors = Counter()  
     occluded_counts = Counter()
     truncated_counts = Counter()
+    anomaly_high_bboxes = []  
+    anomaly_small_bboxes = []  
+    anomaly_large_bboxes = []  
+    anomaly_high_class_count = []  
 
     for img in images:
         num_bboxes = len(img['labels'])
@@ -89,6 +92,9 @@ def compute_basic_stats(images, split_name, empty_images):
         attr_weather[img['attributes'].get('weather', 'unknown')] += 1
         attr_scene[img['attributes'].get('scene', 'unknown')] += 1
         attr_timeofday[img['attributes'].get('timeofday', 'unknown')] += 1
+
+        # Per-image class counts for high class count anomaly
+        img_class_counts = Counter(label['category'] for label in img['labels'])
 
         for label in img['labels']:
             cat = label['category']
@@ -98,6 +104,22 @@ def compute_basic_stats(images, split_name, empty_images):
                 traffic_light_colors[attrs.get('trafficLightColor', 'none')] += 1
             occluded_counts[(cat, attrs.get('occluded', False))] += 1
             truncated_counts[(cat, attrs.get('truncated', False))] += 1
+
+            # Compute box size for anomaly detection
+            box = label['box2d']
+            w = box['x2'] - box['x1']
+            h = box['y2'] - box['y1']
+            area = w * h
+            # Check for small or large bounding box anomalies
+            if area < 20:
+                anomaly_small_bboxes.append((img['name'], cat, area))
+            if area > 500000:
+                anomaly_large_bboxes.append((img['name'], cat, area))
+
+        # Check for high class count anomaly
+        for cls, count in img_class_counts.items():
+            if count > 30:
+                anomaly_high_class_count.append((img['name'], cls, count))
 
     unique_classes = list(class_counts.keys())
     total_bboxes = sum(bboxes_per_image)
@@ -119,10 +141,10 @@ def compute_basic_stats(images, split_name, empty_images):
     avg_sizes = {cat: (np.mean([s[0] for s in sizes]), np.mean([s[1] for s in sizes]), np.mean([s[2] for s in sizes]))
                  for cat, sizes in box_sizes.items()}
 
-    # Anomalies: images with >50 bboxes as example
+    # Anomaly images with >50 bboxes
     anomaly_high_bboxes = [img['name'] for img, n in zip(images, bboxes_per_image) if n > 50]
 
-    # Patterns: class co-occurrence (simple count of pairs)
+    # Patterns - class co-occurrence
     co_occurs = defaultdict(int)
     for img in images:
         cats = set(label['category'] for label in img['labels'])
@@ -130,7 +152,6 @@ def compute_basic_stats(images, split_name, empty_images):
             for c2 in cats:
                 if c1 < c2:
                     co_occurs[(c1, c2)] += 1
-                    
 
     stats = {
         'split': split_name,
@@ -152,13 +173,17 @@ def compute_basic_stats(images, split_name, empty_images):
         'truncated_per_class': {f"{cat}_{trunc}": cnt for (cat, trunc), cnt in truncated_counts.items()},
         'avg_box_sizes': {cat: {'avg_width': aw, 'avg_height': ah, 'avg_area': aa} for cat, (aw, ah, aa) in avg_sizes.items()},
         'anomaly_high_bboxes_images': anomaly_high_bboxes,
+        'anomaly_small_bboxes': anomaly_small_bboxes,  
+        'anomaly_large_bboxes': anomaly_large_bboxes,  
+        'anomaly_high_class_count': anomaly_high_class_count,  
         'class_co_occurrences': {f"{c1}_{c2}": cnt for (c1, c2), cnt in co_occurs.items() if cnt > 0}
     }
     return stats
 
+
 def generate_plots(stats, output_dir):
     """
-    Generate visualization plots and save to output_dir.
+    Generate visualization plots and save to the output_dir.
 
     Args:
         stats (dict): Stats from compute_basic_stats.
@@ -168,7 +193,7 @@ def generate_plots(stats, output_dir):
     
     split = stats['split']
 
-    # Bar chart: class counts
+    # Bar chart for class counts
     df_classes = pd.DataFrame(list(stats['class_counts'].items()), columns=['Class', 'Count'])
     plt.figure(figsize=(10, 6))
     sns.barplot(x='Class', y='Count', data=df_classes)
@@ -178,7 +203,7 @@ def generate_plots(stats, output_dir):
     plt.savefig(os.path.join(output_dir, 'class_distribution', f'class_dist_{split}.png'))
     plt.close()
 
-    # Pie chart: weather
+    # Pie chart for weather
     plt.figure(figsize=(8, 8))
     plt.pie(stats['weather_dist'].values(), labels=stats['weather_dist'].keys(), autopct='%1.1f%%')
     plt.title(f'Weather Distribution - {split}')
@@ -186,7 +211,7 @@ def generate_plots(stats, output_dir):
     plt.savefig(os.path.join(output_dir, 'weather_distribution', f'weather_dist_{split}.png'))
     plt.close()
     
-    # Pie chart: empty images proportion
+    # Pie chart for empty images proportion
     total_images = stats['num_images'] + len(stats['empty_images'])
     empty_count = len(stats['empty_images'])
     non_empty_count = stats['num_images']
@@ -198,7 +223,7 @@ def generate_plots(stats, output_dir):
     plt.savefig(os.path.join(output_dir, 'empty_images', f'empty_images_{split}.png'))
     plt.close()
     
-    # Pie chart: scene
+    # Pie chart for scene distribution
     plt.figure(figsize=(8, 8))
     plt.pie(stats['scene_dist'].values(), labels=stats['scene_dist'].keys(), autopct='%1.1f%%')
     plt.title(f'Scene Distribution - {split}')
@@ -207,7 +232,7 @@ def generate_plots(stats, output_dir):
     plt.savefig(os.path.join(output_dir, 'scene_distibution', f'scene_dist_{split}.png'))
     plt.close()
     
-    # Pie chart: time of day
+    # Pie chart for time of day distribution
     plt.figure(figsize=(8, 8))
     plt.pie(stats['timeofday_dist'].values(), labels=stats['timeofday_dist'].keys(), autopct='%1.1f%%')
     plt.title(f'Time of Day Distribution - {split}')
@@ -216,7 +241,7 @@ def generate_plots(stats, output_dir):
     plt.savefig(os.path.join(output_dir, 'time_of_day_distribution', f'timeofday_dist_{split}.png'))
     plt.close()
     
-    # Bar chart: occluded counts per class
+    # Bar chart for occluded counts per class
     df_occluded = pd.DataFrame([(k.split('_')[0], k.split('_')[1], v) for k, v in stats['occluded_per_class'].items()],
                                columns=['Class', 'Occluded', 'Count'])
     plt.figure(figsize=(12, 6))
@@ -228,7 +253,7 @@ def generate_plots(stats, output_dir):
     plt.savefig(os.path.join(output_dir, 'occluded_objects_per_class', f'occluded_counts_{split}.png'))
     plt.close()
     
-    # Bar chart: truncated counts per class
+    # Bar chart for truncated counts per class
     df_truncated = pd.DataFrame([(k.split('_')[0], k.split('_')[1], v) for k, v in stats['truncated_per_class'].items()],
                                 columns=['Class', 'Truncated', 'Count'])
     plt.figure(figsize=(12, 6))
@@ -241,12 +266,9 @@ def generate_plots(stats, output_dir):
     plt.close()
 
 
-
-    
-
 def write_report(train_stats, val_stats, output_file):
     """
-    Write analysis report to Markdown file.
+    Write the analysis report to .md file
 
     Args:
         train_stats (dict): Train stats.
@@ -270,6 +292,7 @@ def write_report(train_stats, val_stats, output_file):
         f.write("Val:\n")
         for cls, cnt in val_stats['class_counts'].items():
             f.write(f"- {cls}: {cnt}\n")
+        f.write("\n")
 
         f.write("## Bounding Box Stats\n")
         f.write(f"- Avg bboxes per image: Train={train_stats['avg_bboxes_per_image']:.2f}, Val={val_stats['avg_bboxes_per_image']:.2f}\n")
@@ -279,42 +302,75 @@ def write_report(train_stats, val_stats, output_file):
         f.write("## Attribute Distributions\n")
         f.write("Weather (Train/Val):\n")
         all_weathers = set(train_stats['weather_dist'].keys()) | set(val_stats['weather_dist'].keys())
-        for w in all_weathers:
+        for w in sorted(all_weathers):
             f.write(f"- {w}: {train_stats['weather_dist'].get(w, 0)} / {val_stats['weather_dist'].get(w, 0)}\n")
-        # Add similar for scene, timeofday
+
+        f.write("\nScene (Train/Val):\n")
+        all_scenes = set(train_stats['scene_dist'].keys()) | set(val_stats['scene_dist'].keys())
+        for s in sorted(all_scenes):
+            f.write(f"- {s}: {train_stats['scene_dist'].get(s, 0)} / {val_stats['scene_dist'].get(s, 0)}\n")
+
+        f.write("\nTime of Day (Train/Val):\n")
+        all_times = set(train_stats['timeofday_dist'].keys()) | set(val_stats['timeofday_dist'].keys())
+        for t in sorted(all_times):
+            f.write(f"- {t}: {train_stats['timeofday_dist'].get(t, 0)} / {val_stats['timeofday_dist'].get(t, 0)}\n")
 
         f.write("\n## Traffic Light Colors (Train/Val)\n")
         all_colors = set(train_stats['traffic_light_colors'].keys()) | set(val_stats['traffic_light_colors'].keys())
-        for c in all_colors:
+        for c in sorted(all_colors):
             f.write(f"- {c}: {train_stats['traffic_light_colors'].get(c, 0)} / {val_stats['traffic_light_colors'].get(c, 0)}\n")
 
         f.write("\n## Occluded and Truncated Stats\n")
-        # Summarize similarly
+        all_classes = sorted(set(train_stats['avg_box_sizes'].keys()) | set(val_stats['avg_box_sizes'].keys()))
+        f.write("Occluded per Class (Train occluded/non-occluded / Val occluded/non-occluded):\n")
+        for cls in all_classes:
+            t_occ = train_stats['occluded_per_class'].get(f"{cls}_True", 0)
+            t_non = train_stats['occluded_per_class'].get(f"{cls}_False", 0)
+            v_occ = val_stats['occluded_per_class'].get(f"{cls}_True", 0)
+            v_non = val_stats['occluded_per_class'].get(f"{cls}_False", 0)
+            f.write(f"- {cls}: {t_occ}/{t_non} / {v_occ}/{v_non}\n")
+
+        f.write("\nTruncated per Class (Train truncated/non-truncated / Val truncated/non-truncated):\n")
+        for cls in all_classes:
+            t_trunc = train_stats['truncated_per_class'].get(f"{cls}_True", 0)
+            t_non = train_stats['truncated_per_class'].get(f"{cls}_False", 0)
+            v_trunc = val_stats['truncated_per_class'].get(f"{cls}_True", 0)
+            v_non = val_stats['truncated_per_class'].get(f"{cls}_False", 0)
+            f.write(f"- {cls}: {t_trunc}/{t_non} / {v_trunc}/{v_non}\n")
 
         f.write("\n## Average Box Sizes per Class (Width/Height/Area)\n")
-        all_classes = set(train_stats['avg_box_sizes'].keys()) | set(val_stats['avg_box_sizes'].keys())
         for cls in all_classes:
             t_sizes = train_stats['avg_box_sizes'].get(cls, {'avg_width': 0, 'avg_height': 0, 'avg_area': 0})
             v_sizes = val_stats['avg_box_sizes'].get(cls, {'avg_width': 0, 'avg_height': 0, 'avg_area': 0})
             f.write(f"- {cls}: Train={t_sizes['avg_width']:.2f}/{t_sizes['avg_height']:.2f}/{t_sizes['avg_area']:.2f}, Val={v_sizes['avg_width']:.2f}/{v_sizes['avg_height']:.2f}/{v_sizes['avg_area']:.2f}\n")
 
         f.write("\n## Anomalies\n")
-        f.write(f"- Images with >50 bboxes: Train={', '.join(train_stats['anomaly_high_bboxes_images'])}, Val={', '.join(val_stats['anomaly_high_bboxes_images'])}\n")
+        f.write(f"- Images with >50 bboxes: Train={', '.join(train_stats['anomaly_high_bboxes_images']) or 'None'}, Val={', '.join(val_stats['anomaly_high_bboxes_images']) or 'None'}\n\n")
+        f.write(f"- Images with small bboxes (<20 pixels): Train={', '.join([f'{name} ({cat}, {area:.2f})' for name, cat, area in train_stats['anomaly_small_bboxes']]) or 'None'}, Val={', '.join([f'{name} ({cat}, {area:.2f})' for name, cat, area in val_stats['anomaly_small_bboxes']]) or 'None'}\n\n")
+        f.write(f"- Images with large bboxes (>500000 pixels): Train={', '.join([f'{name} ({cat}, {area:.2f})' for name, cat, area in train_stats['anomaly_large_bboxes']]) or 'None'}, Val={', '.join([f'{name} ({cat}, {area:.2f})' for name, cat, area in val_stats['anomaly_large_bboxes']]) or 'None'}\n\n")
+        f.write(f"- Images with high class count (>30 of one class): Train={', '.join([f'{name} ({cls}, {count})' for name, cls, count in train_stats['anomaly_high_class_count']]) or 'None'}, Val={', '.join([f'{name} ({cls}, {count})' for name, cls, count in val_stats['anomaly_high_class_count']]) or 'None'}\n\n")
 
         f.write("\n## Patterns: Class Co-occurrences (Train)\n")
-        for pair, cnt in sorted(train_stats['class_co_occurrences'].items(), key=lambda x: x[1], reverse=True)[:10]:  # Top 10
+        for pair, cnt in sorted(train_stats['class_co_occurrences'].items(), key=lambda x: x[1], reverse=True)[:10]:
             f.write(f"- {pair}: {cnt}\n")
-        # Add for val
+
+        f.write("\n## Patterns: Class Co-occurrences (Val)\n")
+        for pair, cnt in sorted(val_stats['class_co_occurrences'].items(), key=lambda x: x[1], reverse=True)[:10]:
+            f.write(f"- {pair}: {cnt}\n")
 
         f.write("\n## Visualizations\n")
-        f.write("See plots in output/plots/ for charts (e.g., class_dist_train.png).\n")
+        f.write("See plots in output/plots/<category>/ for charts (e.g., class_distribution/class_dist_train.png).\n")
         
 
 def main():
     """Main function to run analysis."""
+    # Paths to train  and val JSON files and output directory
     train_path = '/app/data/bdd100k_labels_images_train.json'
     val_path = '/app/data/bdd100k_labels_images_val.json'
     output_dir = '/app/output'
+    # train_path = 'data/bdd100k_labels_images_train.json'
+    # val_path = 'data/bdd100k_labels_images_val.json'
+    # output_dir = 'output'
     plots_dir = os.path.join(output_dir, 'plots')
     report_file = os.path.join(output_dir, 'analysis_report.md')
 
