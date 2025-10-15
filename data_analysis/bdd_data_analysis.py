@@ -379,14 +379,16 @@ def write_report(train_stats, val_stats, output_file):
 def main():
     """Main function to run analysis."""
     # Paths to train  and val JSON files and output directory
-    # train_path = '/app/data/bdd100k/labels/bdd100k_labels_images_train.json'
-    # val_path = '/app/data/bdd100k/labels/bdd100k_labels_images_val.json'
-    # output_dir = '/app/output'
-    train_labels_path = 'data/bdd100k/labels/bdd100k_labels_images_train.json'
-    val_labels_path = 'data/bdd100k/labels/bdd100k_labels_images_val.json'
-    train_images_path = 'data/bdd100k/images/train'
-    val_images_path = 'data/bdd100k/images/val'
-    output_dir = 'output'
+    train_labels_path = '/app/data/bdd100k/labels/bdd100k_labels_images_train.json'
+    val_labels_path = '/app/data/bdd100k/labels/bdd100k_labels_images_val.json'
+    train_images_path = '/app/data/bdd100k/images/train'
+    val_images_path = '/app/data/bdd100k/images/val'
+    output_dir = '/app/output'
+    # train_labels_path = 'data/bdd100k/labels/bdd100k_labels_images_train.json'
+    # val_labels_path = 'data/bdd100k/labels/bdd100k_labels_images_val.json'
+    # train_images_path = 'data/bdd100k/images/train'
+    # val_images_path = 'data/bdd100k/images/val'
+    # output_dir = 'output'
     plots_dir = os.path.join(output_dir, 'plots')
     report_file = os.path.join(output_dir, 'analysis_report.md')
 
