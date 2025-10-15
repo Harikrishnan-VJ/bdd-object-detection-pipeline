@@ -1,1 +1,4 @@
 bdd-env
+*.pth
+*.pt
+__pycache__/
