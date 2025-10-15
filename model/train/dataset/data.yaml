@@ -1,0 +1,15 @@
+path: ./dataset  # Or absolute path like /path/to/dataset
+train: images/train
+val: images/val
+nc: 10
+names:
+  - traffic light
+  - traffic sign
+  - car
+  - person
+  - bus
+  - truck
+  - rider
+  - bike
+  - motor
+  - train
