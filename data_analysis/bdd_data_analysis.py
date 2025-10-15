@@ -61,7 +61,7 @@ def filter_detection_labels(images):
     return filtered, empty_images
 
 
-def compute_basic_stats(images, split_name, empty_images):
+def compute_basic_stats(images, split_name, empty_images, total_image_count):
     """
     Compute basic stats: images, bboxes, classes, and anomalies.
 
@@ -157,6 +157,7 @@ def compute_basic_stats(images, split_name, empty_images):
         'split': split_name,
         'num_images': num_images,
         'empty_images': empty_images,
+        'background_images': total_image_count - num_images - len(empty_images),
         'total_bboxes': total_bboxes,
         'unique_classes': unique_classes,
         'num_unique_classes': len(unique_classes),
@@ -210,6 +211,19 @@ def generate_plots(stats, output_dir):
     os.makedirs(os.path.join(output_dir, 'weather_distribution'), exist_ok=True)
     plt.savefig(os.path.join(output_dir, 'weather_distribution', f'weather_dist_{split}.png'))
     plt.close()
+    
+    # Pie chart for background images proportion
+    total_images = stats['num_images'] + len(stats['empty_images'])
+    background_img_count = stats['background_images']
+    obj_img_count = stats['num_images']
+    plt.figure(figsize=(8, 8))
+    plt.pie([background_img_count, obj_img_count], labels=['background_images', 'Object Images'], autopct='%1.1f%%')
+    plt.title(f'Background vs Object Images - {split}')
+    plt.tight_layout()
+    os.makedirs(os.path.join(output_dir, 'background_images'), exist_ok=True)
+    plt.savefig(os.path.join(output_dir, 'background_images', f'background_images_{split}.png'))
+    plt.close()
+    
     
     # Pie chart for empty images proportion
     total_images = stats['num_images'] + len(stats['empty_images'])
@@ -365,22 +379,30 @@ def write_report(train_stats, val_stats, output_file):
 def main():
     """Main function to run analysis."""
     # Paths to train  and val JSON files and output directory
-    train_path = '/app/data/bdd100k/labels/bdd100k_labels_images_train.json'
-    val_path = '/app/data/bdd100k/labels/bdd100k_labels_images_val.json'
-    output_dir = '/app/output'
-    # train_path = 'data/bdd100k_labels_images_train.json'
-    # val_path = 'data/bdd100k_labels_images_val.json'
-    # output_dir = 'output'
+    # train_path = '/app/data/bdd100k/labels/bdd100k_labels_images_train.json'
+    # val_path = '/app/data/bdd100k/labels/bdd100k_labels_images_val.json'
+    # output_dir = '/app/output'
+    train_labels_path = 'data/bdd100k/labels/bdd100k_labels_images_train.json'
+    val_labels_path = 'data/bdd100k/labels/bdd100k_labels_images_val.json'
+    train_images_path = 'data/bdd100k/images/train'
+    val_images_path = 'data/bdd100k/images/val'
+    output_dir = 'output'
     plots_dir = os.path.join(output_dir, 'plots')
     report_file = os.path.join(output_dir, 'analysis_report.md')
 
     os.makedirs(output_dir, exist_ok=True)
+    
+    # Images count
+    total_train_image_count = len(os.listdir(train_images_path))
+    total_val_image_count = len(os.listdir(val_images_path))
+    print(f"Train images found: {total_train_image_count}")
+    print(f"Val images found: {total_val_image_count}")
 
-    train_images, empty_train_images = filter_detection_labels(load_json_data(train_path))
-    val_images, empty_val_images = filter_detection_labels(load_json_data(val_path))
+    train_images, empty_train_images = filter_detection_labels(load_json_data(train_labels_path))
+    val_images, empty_val_images = filter_detection_labels(load_json_data(val_labels_path))
 
-    train_stats = compute_basic_stats(train_images, 'train', empty_train_images)
-    val_stats = compute_basic_stats(val_images, 'val', empty_val_images)
+    train_stats = compute_basic_stats(train_images, 'train', empty_train_images, total_train_image_count)
+    val_stats = compute_basic_stats(val_images, 'val', empty_val_images, total_val_image_count)
 
     generate_plots(train_stats, plots_dir)
     generate_plots(val_stats, plots_dir)
