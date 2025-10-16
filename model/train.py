@@ -16,6 +16,3 @@ results = model.train(
     val=True,
     save_period=5
 )
-
-# After training, the best model is saved in runs/train/bdd100k_yolo11/weights/best.pt
-# You can then use it for inference: model = YOLO("runs/train/bdd100k_yolo11/weights/best.pt")
