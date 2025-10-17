@@ -2,3 +2,4 @@ bdd-env
 *.pth
 *.pt
 __pycache__/
+*runs/
