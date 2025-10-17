@@ -4,20 +4,21 @@ This project implements a pipeline for object detection using the BDD100K datase
 
 ## Table of Contents
 
-- Project Overview
-- Setup
-- Downloading Dataset and Inference Model
-- Step 1: Data Preprocessing
-- Step 2: Model Training
-- Step 3: Model Evaluation and Visualization
+- [Project Overview](#project-overview)
+- [Setup](#setup)
+- [Downloading Dataset and Inference Model](#downloading-dataset-and-inference-model)
+- [Step 1: Data Preprocessing](#step-1-data-preprocessing)
+- [Step 2: Data Analysis](#step-2-data-analysis)
+- [Step 2: Model Training](#step-3-model-training)
+- [Step 3: Model Evaluation and Visualization](#step-4-model-evaluation-and-visualization)
 
 ## Project Overview
 The pipeline provides tools for:
 
-Data Preprocessing: Preparing the BDD100K dataset for training (e.g., converting to YOLO format, removing images without labels).
-Data Analysis: Exploring the dataset with visualizations and reports.
-Model Training and Evaluation: Training an object detection model and evaluating its performance.
-Visualization: Generating plots for metrics like accuracy, mAP, and confusion matrices and validation results etc..
+**Data Preprocessing:** Preparing the BDD100K dataset for training (e.g., converting to YOLO format, removing images without labels).
+**Data Analysis:** Exploring the dataset with visualizations and reports.
+**Model Training and Evaluation:** Training an object detection model and evaluating its performance.
+**Visualization:** Generating plots for metrics like accuracy, mAP, and confusion matrices and validation results etc..
 
 ## Setup
 To set up the Python virtual environment and install dependencies, use the provided install.sh script. For detailed instructions, refer to [Setup Instructions](docs/setup.md).
@@ -31,14 +32,14 @@ To download the BDD100K dataset and the pre-trained inference model, use the scr
 ## Step 1: Data Preprocessing
 Before training the model, preprocess the BDD100K dataset using scripts in the model/data_preprocess/ folder. These scripts handle tasks such as:
 
-Converting BDD100K data to YOLO format.
-Removing images without labels.
-Other necessary preprocessing steps.
+- Converting BDD100K data to YOLO format.
+- Removing images without labels.
+- Other necessary preprocessing steps.
 
 ### Instructions
 
-Ensure the dataset is downloaded to data_analysis/data/ (see Downloading Dataset and Inference Model).
-Navigate to the model/data_preprocess/ folder:
+Ensure the dataset is downloaded to `data_analysis/data/` (see Downloading Dataset and Inference Model).
+Navigate to the `model/data_preprocess/` folder:
 ```
 cd model/data_preprocess/
 ```
@@ -46,7 +47,7 @@ cd model/data_preprocess/
 Run the preprocessing scripts (refer to individual script documentation or comments for specific usage).
 
 
-Verify the output (e.g., YOLO-formatted files) in the appropriate directory, typically within model/data_preprocess/ or a specified output folder.
+Verify the output (e.g., YOLO-formatted files) in the appropriate directory, typically within `model/data_preprocess/` or a specified output folder.
 
 ## Step 2: Data Analysis
 This step generates a data analysis report and visualizations for the BDD100K dataset using a Docker container.
@@ -77,7 +78,7 @@ The script builds and runs a Docker container with default variables specified i
 
 - Report: A detailed analysis report saved as output/analysis_report.md, highlighting anomalies and insights.
 
-For further details, refer to analysis_report.md.
+For further details, refer to `analysis_report.md`.
 
 
 ## Step 3: Model Training
@@ -85,7 +86,7 @@ After preprocessing, train the object detection model using the train.py script.
 
 Ensure the virtual environment is activated (see setup.md).
 Ensure the preprocessed data is available (from Step 1: Data Preprocessing).
-Navigate to the model/ folder:
+Navigate to the `model/` folder:
 ```
 cd model/
 ```
@@ -95,13 +96,13 @@ Run the training script:
 python3 train.py
 ```
 
-Outputs: Trained model weights and logs are saved in the model/ folder or a subdirectory (e.g., model/runs/), depending on the script configuration.
+Outputs: Trained model weights and logs are saved in the `model/` folder or a subdirectory (e.g., model/runs/), depending on the script configuration.
 
 ## Step 4: Model Evaluation and Visualization
 This step evaluates the trained model and generates visualizations of performance metrics.
 
 Ensure the virtual environment is activated (see setup.md).
-Navigate to the model/ folder:
+Navigate to the `model/` folder:
 ```
 cd model/
 ```
