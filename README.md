@@ -7,8 +7,8 @@ This project implements a pipeline for object detection using the BDD100K datase
 - [Project Overview](#project-overview)
 - [Setup](#setup)
 - [Downloading Dataset and Inference Model](#downloading-dataset-and-inference-model)
-- [Step 1: Data Preprocessing](#step-1-data-preprocessing)
-- [Step 2: Data Analysis](#step-2-data-analysis)
+- [Step 1: Data Analysis](#step-2-data-analysis)
+- [Step 2: Data Preprocessing](#step-1-data-preprocessing)
 - [Step 2: Model Training](#step-3-model-training)
 - [Step 3: Model Evaluation and Visualization](#step-4-model-evaluation-and-visualization)
 
@@ -29,27 +29,7 @@ Activate the virtual environment as described in setup.md.
 To download the BDD100K dataset and the pre-trained inference model, use the scripts in the scripts/ folder. For detailed instructions, refer to Dataset and [Model Download Instructions](docs/dataset_and_model_download_instructions.md).
 
 
-## Step 1: Data Preprocessing
-Before training the model, preprocess the BDD100K dataset using scripts in the model/data_preprocess/ folder. These scripts handle tasks such as:
-
-- Converting BDD100K data to YOLO format.
-- Removing images without labels.
-- Other necessary preprocessing steps.
-
-### Instructions
-
-Ensure the dataset is downloaded to `data_analysis/data/` (see Downloading Dataset and Inference Model).
-Navigate to the `model/data_preprocess/` folder:
-```
-cd model/data_preprocess/
-```
-
-Run the preprocessing scripts (refer to individual script documentation or comments for specific usage).
-
-
-Verify the output (e.g., YOLO-formatted files) in the appropriate directory, typically within `model/data_preprocess/` or a specified output folder.
-
-## Step 2: Data Analysis
+## Step 1: Data Analysis
 This step generates a data analysis report and visualizations for the BDD100K dataset using a Docker container.
 
 Navigate to the data_analysis/ folder:
@@ -80,6 +60,26 @@ The script builds and runs a Docker container with default variables specified i
 
 For further details, refer to `analysis_report.md`.
 
+## Step 2: Data Preprocessing
+Before training the model, preprocess the BDD100K dataset using scripts in the model/data_preprocess/ folder. These scripts handle tasks such as:
+
+- Converting BDD100K data to YOLO format.
+- Removing images without labels.
+- Other necessary preprocessing steps.
+
+
+### Instructions
+
+Ensure the dataset is downloaded to `data_analysis/data/` (see Downloading Dataset and Inference Model).
+Navigate to the `model/data_preprocess/` folder:
+```
+cd model/data_preprocess/
+```
+
+Run the preprocessing scripts (refer to individual script documentation or comments for specific usage).
+
+
+Verify the output (e.g., YOLO-formatted files) in the appropriate directory, typically within `model/data_preprocess/` or a specified output folder.
 
 ## Step 3: Model Training
 After preprocessing, train the object detection model using the train.py script.
