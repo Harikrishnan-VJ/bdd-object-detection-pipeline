@@ -114,9 +114,10 @@ python3 eval.py
 ### Outputs:
 Evaluation results and visualizations (e.g., accuracy, mAP, confusion matrix) are saved in the model/runs/ folder.
 
+For model evaluation and visualization details, see [Evaluation and Visualization](docs/evaluation_and_visualization.md).
+
+
 
 
 ### Additional Notes
-
-Ensure all scripts have executable permissions (chmod +x <script>).
 If you encounter issues, check the respective .md files or script comments for troubleshooting tips.
