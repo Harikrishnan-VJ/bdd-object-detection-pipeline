@@ -1,7 +1,9 @@
 #!/bin/bash
 
+cwd=$(pwd)
+
 # Define variables
-host_path="/home/user/hari/test/bdd-object-detection-pipeline/data_analysis"
+host_path="$cwd"
 container_path="/app"
 image_name="bdd-analysis"
 image_tag="v1.0"
