@@ -28,4 +28,5 @@ pip3 install -r "$REQUIREMENTS_FILE"
 # Deactivate the venv after installation
 deactivate
 
+echo " "
 echo "Installation complete. To use the venv, run: source $VENV_NAME/bin/activate"
