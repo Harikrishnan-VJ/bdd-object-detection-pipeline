@@ -23,6 +23,8 @@ with zipfile.ZipFile(output_zip, 'r') as zip_ref:
 
 # Copy JSON files to data folder
 print("Copying data to data folder...")
+shutil.copytree(os.path.join(extracted_folder, 'images'), '../model/dataset/images', dirs_exist_ok=True)
+shutil.copytree(os.path.join(extracted_folder, 'labels'), '../model/dataset/labels', dirs_exist_ok=True)
 shutil.move(extracted_folder, data_folder)
 
 # Clean up remove zip file and extracted folder
